@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"mc/mc"
 	"os"
 	"strings"
 )
@@ -23,15 +24,46 @@ func main() {
 			fmt.Println(HELP)
 			os.Exit(0)
 		} else if strings.HasSuffix(arg, ".c") {
-			arg := args[0]
-			filename := arg[:len(arg)-2]
-			headerFileName := filename + ".h"
-			fmt.Println(headerFileName)
+			src_path := args[0]
+			out_path := src_path[:len(src_path)-2] + ".h"
+			mc.GenerateHeaderFile(src_path, out_path)
 		} else {
 			fmt.Println("error: Unknown command!")
 			os.Exit(1)
 		}
-	} else if len(args) > 1 {
+	} else if len(args) == 3 {
+		fmt.Println("Under construction!")
+		os.Exit(1)
+		// src_path := ""
+		// out_path := ""
+		// y := 0
+		// for y < len(args) {
+		// 	if strings.HasSuffix(args[y], ".c") {
+		// 		src_path = args[y]
+		// 	} else if args[y] == "-o" {
+		// 		y += 1
+		// 		if y < len(args) {
+		// 			out_path = args[y]
+		// 			y += 1
+		// 			continue
+		// 		}
+		// 	} else {
+		// 		fmt.Println("error: Unknown command!")
+		// 		os.Exit(1)
+		// 	}
+		// 	y += 1
+		// }
+
+		// if src_path == "" {
+		// 	fmt.Println("error: No .c file provided!")
+		// 	os.Exit(1)
+		// } else if out_path == "" {
+		// 	fmt.Println("error: No output path provided!")
+		// 	os.Exit(1)
+		// }
+
+		// filename := src_path[:len(src_path)-2]
+		// out_path += filename
 
 	} else {
 		fmt.Println("error: Unknown command!")
@@ -50,5 +82,5 @@ const HELP = `A pre-preprocessor for C.
 	mc <no args>                  -> Print mc commands list
 	mc -version, -v               -> Print mc version
 	mc -help,    -h               -> Print mc commands list
-	mc hello.c                    -> Generate .h header file inside 'include/' folder
+	mc hello.c                    -> Generate the .h header file inside 'include/' folder
 	mc hello.c -o include/hello/  -> Generate the .h header file inside the specified folder`
