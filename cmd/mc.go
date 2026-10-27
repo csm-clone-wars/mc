@@ -25,8 +25,9 @@ func main() {
 			os.Exit(0)
 		} else if strings.HasSuffix(arg, ".c") {
 			src_path := args[0]
+			src_content := mc.ReadFileToString(src_path)
 			out_path := src_path[:len(src_path)-2] + ".h"
-			mc.GenerateHeaderFile(src_path, out_path)
+			mc.GenerateHeaderFile(src_content, out_path)
 		} else {
 			fmt.Println("error: Unknown command!")
 			os.Exit(1)
