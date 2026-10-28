@@ -83,5 +83,5 @@ const HELP = `A pre-preprocessor for C.
 	mc <no args>                  -> Print mc commands list
 	mc -version, -v               -> Print mc version
 	mc -help,    -h               -> Print mc commands list
-	mc hello.c                    -> Generate the .h header file inside 'include/' folder
+	mc hello.c                    -> Generate the .h header file 
 	mc hello.c -o include/hello/  -> Generate the .h header file inside the specified folder`
