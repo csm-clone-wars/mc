@@ -53,7 +53,7 @@ pub fn parse(args: &Vec<String>) -> Options {
     }
 
     if options.out_dir_path.is_empty() {
-        for src_path in options.c_src_paths {
+        for src_path in &options.c_src_paths {
             let Some(filename) = src_path.file_name() else {
                 let error = format!("Missing filename for '{}'", src_path.display());
                 options.errors.push(error);
@@ -63,7 +63,7 @@ pub fn parse(args: &Vec<String>) -> Options {
             options.out_header_paths.push(out_header_path);
         }
     } else {
-        for src_path in options.c_src_paths {
+        for src_path in &options.c_src_paths {
             let Some(_filename) = src_path.file_name() else {
                 let error = format!("Missing filename for '{}'", src_path.display());
                 options.errors.push(error);
@@ -73,5 +73,6 @@ pub fn parse(args: &Vec<String>) -> Options {
             options.out_header_paths.push(out_header_path);
         }
     }
+
     options
 }

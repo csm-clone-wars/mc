@@ -32,6 +32,12 @@ fn main() {
             exit(0);
         }
     }
+
+    let mut x = 0;
+    while x < options.c_src_paths.len() {
+        mc::generate_header_file(&options.c_src_paths[x], &options.out_header_paths[x]);
+        x += 1;
+    }
 }
 
 const MC_VERSION: &str = "mc 1.0.0";
