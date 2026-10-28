@@ -56,5 +56,3 @@ pub fn interface_macro_error() {
     println!("Even if its empty, it should be present!");
     exit(1);
 }
-
-pub fn parse_interface_macro() {}
