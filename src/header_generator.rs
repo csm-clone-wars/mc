@@ -33,10 +33,10 @@ pub fn generate_header_file(src_path: &PathBuf, _out_path: &PathBuf) {
                 x = y + 1;
                 continue;
             } else {
-                interface_error();
+                interface_macro_error();
             }
         } else {
-            interface_error();
+            interface_macro_error();
         }
         x += 1;
     }
@@ -49,7 +49,7 @@ pub fn read_file(path: &PathBuf) -> String {
     })
 }
 
-pub fn interface_error() {
+pub fn interface_macro_error() {
     println!(
         "error: Each .c file should have a valid interface macro, with valid opening and closing, at the top of file."
     );
