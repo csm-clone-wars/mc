@@ -32,10 +32,6 @@ fn main() {
             exit(0);
         }
     }
-
-    if options.out_dir_path.is_empty() {
-    } else {
-    }
 }
 
 const MC_VERSION: &str = "mc 1.0.0";
