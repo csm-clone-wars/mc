@@ -1,16 +1,20 @@
 use std::{fs, path::PathBuf, process::exit};
 
+use crate::macro_parser::parse_interface_macro;
+
 pub fn generate_header_file(src_path: &PathBuf, _out_path: &PathBuf) {
     let src = read_file(src_path);
     let mut header_content = "".to_owned();
 
-    let mut x = 0;
+    let mut x:  = 0;
     while x < src.len() {
         if src[x] <= b' ' {
             // Skip ASCII whitespace and control characters
         } else if src[x] == b'/' {
             x += 1;
             if x + 11 < src.len() && &src[x..x + 11] == "/@interface" {
+                parse_interface_macro(src_path, &src, x + 11, &mut header_content);
+                break;
             } else if x < src.len() && src[x] == b'/' {
                 // Skip single-line comment that appears before interface macro at the top of file
                 let mut newline = false;
