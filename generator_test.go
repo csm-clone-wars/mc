@@ -6,6 +6,49 @@ import (
 	"testing"
 )
 
+func TestFormatHeader(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "empty content",
+			input:    "",
+			expected: "#pragma once\n",
+		},
+		{
+			name:     "whitespace only",
+			input:    "   \n\t\n  ",
+			expected: "#pragma once\n",
+		},
+		{
+			name:     "content without leading newline",
+			input:    "void hello(void);\n",
+			expected: "#pragma once\n\nvoid hello(void);\n",
+		},
+		{
+			name:     "content with leading newline",
+			input:    "\nvoid hello(void);\n",
+			expected: "#pragma once\n\nvoid hello(void);\n",
+		},
+		{
+			name:     "content already having pragma once",
+			input:    "#pragma once\n\nvoid hello(void);\n",
+			expected: "#pragma once\n\nvoid hello(void);\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FormatHeader(tt.input)
+			if got != tt.expected {
+				t.Errorf("FormatHeader(%q) = %q, expected %q", tt.input, got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestGenerateHeader_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	cFile := filepath.Join(tempDir, "hello.c")
@@ -37,7 +80,7 @@ void hello(void) {}
 		t.Fatalf("failed to read generated header: %v", err)
 	}
 
-	expectedHeader := "void hello(void);\n"
+	expectedHeader := "#pragma once\n\nvoid hello(void);\n"
 	if string(headerData) != expectedHeader {
 		t.Errorf("expected %q, got %q", expectedHeader, string(headerData))
 	}
@@ -66,8 +109,9 @@ int main() { return 0; }
 		t.Fatalf("failed to read generated header: %v", err)
 	}
 
-	if string(headerData) != "" {
-		t.Errorf("expected empty header file, got %q", string(headerData))
+	expectedHeader := "#pragma once\n"
+	if string(headerData) != expectedHeader {
+		t.Errorf("expected %q, got %q", expectedHeader, string(headerData))
 	}
 }
 

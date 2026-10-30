@@ -39,7 +39,7 @@ void sample_v1(void);
 	if err != nil {
 		t.Fatalf("expected header to exist initially: %v", err)
 	}
-	if string(data) != "void sample_v1(void);\n" {
+	if string(data) != "#pragma once\n\nvoid sample_v1(void);\n" {
 		t.Errorf("expected v1 header, got %q", string(data))
 	}
 
@@ -54,16 +54,17 @@ void sample_v2(int x);
 
 	// Allow debounce and file event to process
 	var updatedData []byte
+	expectedV2 := "#pragma once\n\nvoid sample_v2(int x);\n"
 	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
 		time.Sleep(100 * time.Millisecond)
 		updatedData, _ = os.ReadFile(headerPath)
-		if string(updatedData) == "void sample_v2(int x);\n" {
+		if string(updatedData) == expectedV2 {
 			break
 		}
 	}
 
-	if string(updatedData) != "void sample_v2(int x);\n" {
+	if string(updatedData) != expectedV2 {
 		t.Fatalf("expected header to be updated to v2, got: %q", string(updatedData))
 	}
 

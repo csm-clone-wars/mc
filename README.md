@@ -45,8 +45,9 @@ int main(){
 ## MC Rules
 - Each .c file should have @pub macro at the top.
 - Before @pub macro whitespace characters and single line comments are allowed.
-- @pub macro can be empty
-- Anything inside (between the macro comments '//@pub' '//@end' will go to the .h header file)
+- @pub macro can be empty.
+- Anything inside (between the macro comments '//@pub' '//@end' will go to the .h header file).
+- Every generated header file template includes `#pragma once` at the top, even if the @pub macro is empty.
 
 
 
