@@ -1,0 +1,8 @@
+# Binaries
+mc
+*.exe
+*.o
+
+# Build & generated folders
+include/
+build/

@@ -1,13 +1,18 @@
-FPC = fpc
-SRC = src/mc.pas
-OUT_DIR = build
-OUT = mc
+APP_NAME := mc
 
-.PHONY: all clean
+.PHONY: all build test clean run
 
-all:
-	mkdir -p $(OUT_DIR)
-	$(FPC) -O2 -FU$(OUT_DIR) -FE. -o$(OUT) $(SRC)
+all: build
+
+build:
+	go build -o $(APP_NAME) .
+
+test:
+	go test -v ./...
 
 clean:
-	rm -f $(OUT) $(OUT_DIR)/*.o $(OUT_DIR)/*.ppu
+	rm -f $(APP_NAME)
+	rm -rf include
+
+run: build
+	./$(APP_NAME)
