@@ -28,13 +28,36 @@ func FormatHeader(content string) string {
 	return HeaderTemplate + "\n" + content
 }
 
-// GenerateHeader processes a .c source file and writes the corresponding .h file to includeDir.
-func GenerateHeader(cFilePath, includeDir string) (string, error) {
-	if filepath.Ext(cFilePath) != ".c" {
-		return "", fmt.Errorf("%s: not a .c file", cFilePath)
+// SupportedSourceExtensions maps supported source extensions to their corresponding header extension.
+var SupportedSourceExtensions = map[string]string{
+	".c":   ".h",
+	".cpp": ".hpp",
+	".c++": ".hpp",
+	".cxx": ".hpp",
+	".cc":  ".hpp",
+}
+
+// IsSupportedSource returns true if the file extension is supported.
+func IsSupportedSource(filePath string) bool {
+	ext := filepath.Ext(filePath)
+	_, ok := SupportedSourceExtensions[ext]
+	return ok
+}
+
+// HeaderExtForSource returns the header extension for a given source file, or empty string if unsupported.
+func HeaderExtForSource(filePath string) string {
+	ext := filepath.Ext(filePath)
+	return SupportedSourceExtensions[ext]
+}
+
+// GenerateHeader processes a C or C++ source file and writes the corresponding header file (.h or .hpp) to includeDir.
+func GenerateHeader(srcFilePath, includeDir string) (string, error) {
+	headerExt := HeaderExtForSource(srcFilePath)
+	if headerExt == "" {
+		return "", fmt.Errorf("%s: not a supported source file (.c, .cpp, .c++, .cxx)", srcFilePath)
 	}
 
-	res, err := ParseCFile(cFilePath)
+	res, err := ParseFile(srcFilePath)
 	if err != nil {
 		return "", err
 	}
@@ -43,8 +66,9 @@ func GenerateHeader(cFilePath, includeDir string) (string, error) {
 		return "", fmt.Errorf("failed to create directory %s: %w", includeDir, err)
 	}
 
-	baseName := strings.TrimSuffix(filepath.Base(cFilePath), filepath.Ext(cFilePath))
-	outPath := filepath.Join(includeDir, baseName+".h")
+	ext := filepath.Ext(srcFilePath)
+	baseName := strings.TrimSuffix(filepath.Base(srcFilePath), ext)
+	outPath := filepath.Join(includeDir, baseName+headerExt)
 
 	headerContent := FormatHeader(res.Content)
 	if err := os.WriteFile(outPath, []byte(headerContent), 0644); err != nil {

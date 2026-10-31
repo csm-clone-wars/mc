@@ -166,3 +166,221 @@ func TestParseCReader_Errors(t *testing.T) {
 		})
 	}
 }
+
+func TestParseReader_CppBlockCommentsBeforePub(t *testing.T) {
+	src := `/*
+ * Matrix Library
+ * Copyright (C) 2026
+ */
+
+/* Another block comment */
+
+//@pub
+namespace math {
+    class Matrix;
+}
+//@end
+
+namespace math {
+    class Matrix {};
+}
+`
+	res, err := ParseReader("matrix.cpp", strings.NewReader(src))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := `namespace math {
+    class Matrix;
+}
+`
+	if res.Content != expected {
+		t.Errorf("expected:\n%s\ngot:\n%s", expected, res.Content)
+	}
+}
+
+func TestParseReader_CppBlockCommentsContainingPubDirective(t *testing.T) {
+	src := `/*
+Example syntax:
+//@pub
+void test_example();
+//@end
+*/
+
+//@pub
+void real_function();
+//@end
+
+void real_function() {}
+`
+	res, err := ParseReader("example.cpp", strings.NewReader(src))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "void real_function();\n"
+	if res.Content != expected {
+		t.Errorf("expected %q, got %q", expected, res.Content)
+	}
+}
+
+func TestParseReader_CppRawStringLiteralsInPub(t *testing.T) {
+	src := `//@pub
+#include <string>
+
+inline std::string getEndDirective() {
+    return R"(
+//@end
+)";
+}
+
+inline std::string getCustomRaw() {
+    return R"DELIM(
+//@pub
+void nested();
+//@end
+)DELIM";
+}
+//@end
+
+int dummy = 0;
+`
+	res, err := ParseReader("raw_in_pub.cpp", strings.NewReader(src))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := `#include <string>
+
+inline std::string getEndDirective() {
+    return R"(
+//@end
+)";
+}
+
+inline std::string getCustomRaw() {
+    return R"DELIM(
+//@pub
+void nested();
+//@end
+)DELIM";
+}
+`
+	if res.Content != expected {
+		t.Errorf("expected:\n%s\ngot:\n%s", expected, res.Content)
+	}
+}
+
+func TestParseReader_CppRawStringLiteralsAfterPub(t *testing.T) {
+	src := `//@pub
+void printDocs();
+//@end
+
+#include <iostream>
+
+void printDocs() {
+    std::cout << R"(
+Here is how to use @pub:
+//@pub
+void my_func();
+//@end
+)" << std::endl;
+}
+`
+	res, err := ParseReader("raw_after_pub.cpp", strings.NewReader(src))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "void printDocs();\n"
+	if res.Content != expected {
+		t.Errorf("expected %q, got %q", expected, res.Content)
+	}
+}
+
+func TestParseReader_CppBlockCommentsAfterPub(t *testing.T) {
+	src := `//@pub
+void active_func();
+//@end
+
+/*
+Legacy disabled code:
+//@pub
+void legacy_func();
+//@end
+*/
+
+void active_func() {}
+`
+	res, err := ParseReader("block_after_pub.cpp", strings.NewReader(src))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "void active_func();\n"
+	if res.Content != expected {
+		t.Errorf("expected %q, got %q", expected, res.Content)
+	}
+}
+
+func TestParseReader_CppComplexConstructs(t *testing.T) {
+	src := `// Header comments
+//@pub
+#include <concepts>
+#include <vector>
+#include <string>
+
+template <typename T>
+concept Printable = requires(T a) {
+    { std::cout << a };
+};
+
+template <typename T, typename Alloc = std::allocator<T>>
+class Container {
+private:
+    std::vector<T, Alloc> data;
+    std::string tag = "//@end is inside string";
+
+public:
+    Container() = default;
+    [[nodiscard]] auto size() const noexcept -> std::size_t {
+        return data.size();
+    }
+};
+//@end
+
+int main() {
+    return 0;
+}
+`
+	res, err := ParseReader("complex.cpp", strings.NewReader(src))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := `#include <concepts>
+#include <vector>
+#include <string>
+
+template <typename T>
+concept Printable = requires(T a) {
+    { std::cout << a };
+};
+
+template <typename T, typename Alloc = std::allocator<T>>
+class Container {
+private:
+    std::vector<T, Alloc> data;
+    std::string tag = "//@end is inside string";
+
+public:
+    Container() = default;
+    [[nodiscard]] auto size() const noexcept -> std::size_t {
+        return data.size();
+    }
+};
+`
+	if res.Content != expected {
+		t.Errorf("expected:\n%s\ngot:\n%s", expected, res.Content)
+	}
+}

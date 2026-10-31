@@ -7,7 +7,7 @@ import (
 
 const (
 	Version = "0.1.0"
-	Usage   = `mc - meta-c: A pre-preprocessor for C
+	Usage   = `mc - meta-c: A pre-preprocessor for C and C++
 
 Usage:
   mc [options] [files...]
@@ -16,8 +16,8 @@ Commands:
   mc                 Print mc version and help
   mc -version,  -v   Print mc version
   mc -help,     -h   Print mc commands list
-  mc -watch,    -w   Watch for any file changes and regenerate .h files
-  mc <files.c...>    Generate .h header files in include/ folder for given .c files
+  mc -watch,    -w   Watch for any file changes and regenerate header files
+  mc <files...>      Generate header files in include/ folder for given source files (.c, .cpp, .c++, .cxx)
 `
 )
 

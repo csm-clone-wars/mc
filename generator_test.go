@@ -86,6 +86,63 @@ void hello(void) {}
 	}
 }
 
+func TestGenerateHeader_CppExtensions(t *testing.T) {
+	exts := []string{".cpp", ".c++", ".cxx"}
+
+	for _, ext := range exts {
+		t.Run("ext_"+ext, func(t *testing.T) {
+			tempDir := t.TempDir()
+			srcFile := filepath.Join(tempDir, "widget"+ext)
+			includeDir := filepath.Join(tempDir, "include")
+
+			content := `/*
+ * Widget component
+ */
+//@pub
+template <typename T>
+class Widget {
+public:
+    Widget(T val);
+};
+//@end
+
+template <typename T>
+Widget<T>::Widget(T val) {}
+`
+			if err := os.WriteFile(srcFile, []byte(content), 0644); err != nil {
+				t.Fatalf("failed to write test file: %v", err)
+			}
+
+			outPath, err := GenerateHeader(srcFile, includeDir)
+			if err != nil {
+				t.Fatalf("unexpected error for %s: %v", ext, err)
+			}
+
+			expectedOut := filepath.Join(includeDir, "widget.hpp")
+			if outPath != expectedOut {
+				t.Errorf("expected %q, got %q", expectedOut, outPath)
+			}
+
+			headerData, err := os.ReadFile(outPath)
+			if err != nil {
+				t.Fatalf("failed to read generated header: %v", err)
+			}
+
+			expectedHeader := `#pragma once
+
+template <typename T>
+class Widget {
+public:
+    Widget(T val);
+};
+`
+			if string(headerData) != expectedHeader {
+				t.Errorf("expected header:\n%s\ngot:\n%s", expectedHeader, string(headerData))
+			}
+		})
+	}
+}
+
 func TestGenerateHeader_EmptyMacro(t *testing.T) {
 	tempDir := t.TempDir()
 	cFile := filepath.Join(tempDir, "main.c")

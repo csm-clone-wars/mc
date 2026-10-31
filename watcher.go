@@ -15,13 +15,13 @@ import (
 
 // WatchOptions configures the watch behavior.
 type WatchOptions struct {
-	Files      []string        // Specific files to watch, or empty for all .c files
+	Files      []string        // Specific files to watch, or empty for all source files
 	IncludeDir string          // Target directory for header files, default "include"
 	RootDir    string          // Root directory to watch, default "."
 	StopChan   <-chan struct{} // Optional channel to cleanly stop watcher (useful in tests)
 }
 
-// Watch watches for changes in .c files and regenerates .h files.
+// Watch watches for changes in source files (.c, .cpp, .c++, .cxx) and regenerates header files (.h, .hpp).
 func Watch(opts WatchOptions) error {
 	if opts.IncludeDir == "" {
 		opts.IncludeDir = "include"
@@ -54,12 +54,12 @@ func Watch(opts WatchOptions) error {
 			}
 		}
 	} else {
-		fmt.Println("[mc] scanning directory and generating headers for all .c files...")
-		cFiles, err := findCFiles(opts.RootDir)
+		fmt.Println("[mc] scanning directory and generating headers for all source files...")
+		srcFiles, err := findSourceFiles(opts.RootDir)
 		if err != nil {
-			return fmt.Errorf("failed to scan for .c files: %w", err)
+			return fmt.Errorf("failed to scan for source files: %w", err)
 		}
-		for _, f := range cFiles {
+		for _, f := range srcFiles {
 			outPath, err := GenerateHeader(f, opts.IncludeDir)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[mc] error in %s: %v\n", f, err)
@@ -134,7 +134,7 @@ func Watch(opts WatchOptions) error {
 				continue
 			}
 
-			if filepath.Ext(event.Name) != ".c" {
+			if !IsSupportedSource(event.Name) {
 				continue
 			}
 
@@ -166,7 +166,7 @@ func Watch(opts WatchOptions) error {
 	}
 }
 
-func findCFiles(root string) ([]string, error) {
+func findSourceFiles(root string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -178,12 +178,17 @@ func findCFiles(root string) ([]string, error) {
 			}
 			return nil
 		}
-		if filepath.Ext(path) == ".c" {
+		if IsSupportedSource(path) {
 			files = append(files, path)
 		}
 		return nil
 	})
 	return files, err
+}
+
+// findCFiles is kept for backward compatibility.
+func findCFiles(root string) ([]string, error) {
+	return findSourceFiles(root)
 }
 
 func addWatchDirectories(watcher *fsnotify.Watcher, root string) error {
